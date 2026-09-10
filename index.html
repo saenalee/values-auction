@@ -184,15 +184,17 @@
     <input type="text" id="myNameInput" placeholder="내 이름 / 모둠 이름" style="width:150px;">
     <button class="btn btn-gold" id="btnJoinRoom">입장하기</button>
     <span id="roomStatus" style="font-size:13px;color:var(--muted);"></span>
+    <button id="teacherModeToggle" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;">교사이신가요?</button>
   </div>
 
   <nav class="tabs">
     <button data-tab="cards" class="active">가치관 목록 확인하기</button>
     <button data-tab="student">가치관 경매하기</button>
-    <button data-tab="teacher">경매 진행</button>
+    <button data-tab="teacher" id="teacherTabBtn" style="display:none;">경매 진행</button>
     <button data-tab="reflect">성찰하기</button>
-    <button data-tab="dashboard">학생 답변 보기</button>
+    <button data-tab="dashboard" id="dashboardTabBtn" style="display:none;">학생 답변 보기</button>
   </nav>
+
 
   <!-- TAB 1: CARDS -->
   <section id="tab-cards" class="active">
@@ -468,6 +470,11 @@ function renderLiveBidPanel(data){
   const found = VALUES.find(v=>v[0]===cardName) || ['',''];
   const desc = found[1];
   const img = CARD_IMAGES[cardName];
+  const budgetInfo = (t)=>{
+    const team = data.teams[t];
+    if(!team) return '';
+    return `예산 ${team.budget.toLocaleString()}원 · 남은 ${(team.budget-team.spent).toLocaleString()}원`;
+  };
   box.innerHTML = `
     <div class="stage" style="margin-bottom:14px;padding:20px;">
       <div class="progress">${data.idx+1} / ${data.deckNames.length}번째 카드</div>
@@ -478,6 +485,9 @@ function renderLiveBidPanel(data){
     <div class="budget-row">
       <label>우리 팀</label>
       <select id="liveTeamSelect">${teamNames.map(n=>`<option value="${n}">${n}</option>`).join('')}</select>
+      <span id="liveTeamBudgetInfo" style="font-size:13px;color:var(--muted);font-weight:700;">${budgetInfo(teamNames[0])}</span>
+    </div>
+    <div class="budget-row">
       <label>입찰가</label>
       <input type="number" id="liveBidAmount" min="0" step="10" style="width:100px;">
       <button class="btn btn-gold" id="btnSubmitBid">입찰 제출</button>
@@ -485,6 +495,9 @@ function renderLiveBidPanel(data){
     </div>
     ${renderResultsListHTML(data.results)}
   `;
+  document.getElementById('liveTeamSelect').addEventListener('change', (e)=>{
+    document.getElementById('liveTeamBudgetInfo').textContent = budgetInfo(e.target.value);
+  });
   document.getElementById('btnSubmitBid').addEventListener('click', ()=>{
     const team = document.getElementById('liveTeamSelect').value;
     const amt = Number(document.getElementById('liveBidAmount').value)||0;
@@ -555,6 +568,12 @@ document.querySelectorAll('nav.tabs button').forEach(btn=>{
     btn.classList.add('active');
     document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
   });
+});
+
+document.getElementById('teacherModeToggle').addEventListener('click', ()=>{
+  document.getElementById('teacherTabBtn').style.display = '';
+  document.getElementById('dashboardTabBtn').style.display = '';
+  document.getElementById('teacherModeToggle').style.display = 'none';
 });
 
 /* ---------- tab 1: cards ---------- */
